@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drive Score — Field Team 6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue-dark: #1a2744;
+            --blue-mid: #2b4c7e;
+            --blue-bright: #3a7bd5;
+            --blue-light: #5b9ef0;
+            --blue-pale: #e8f0fe;
+            --accent-gold: #f5c542;
+            --white: #ffffff;
+            --gray-50: #f8f9fa;
+            --gray-100: #f0f2f5;
+            --gray-200: #dde1e7;
+            --gray-400: #9ca3af;
+            --gray-600: #6b7280;
+            --gray-800: #374151;
+            --red-soft: #e74c3c;
+            --green-success: #27ae60;
+            --shadow-sm: 0 1px 3px rgba(26, 39, 68, 0.12);
+            --shadow-md: 0 4px 12px rgba(26, 39, 68, 0.15);
+            --shadow-lg: 0 8px 30px rgba(26, 39, 68, 0.18);
+            --radius: 10px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 50%, #1e3a5f 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: rgba(26, 39, 68, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 16px 24px;
+            text-align: center;
+            border-bottom: 3px solid var(--accent-gold);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-logo { height: 50px; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+        .header h1 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.7rem; color: var(--white); letter-spacing: 0.5px; }
+        .header p { color: var(--blue-light); font-size: 0.9rem; margin-top: 2px; font-weight: 500; }
+
+        /* ===== CONTAINER ===== */
+        .container { max-width: 720px; margin: 24px auto; padding: 0 16px 40px; }
+
+        /* ===== CARD ===== */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 28px 28px 24px;
+            margin-bottom: 20px;
+            border-top: 4px solid var(--blue-bright);
+            animation: fadeUp 0.4s ease-out;
+        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700; font-size: 1.15rem; color: var(--blue-dark);
+            margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+        }
+        .card-title .icon { font-size: 1.3rem; }
+
+        /* ===== DRIVE INFO SUMMARY BAR ===== */
+        .drive-summary {
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+            color: var(--white);
+            border-radius: var(--radius);
+            padding: 16px 22px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeUp 0.3s ease-out;
+            box-shadow: var(--shadow-md);
+        }
+        .drive-summary .summary-label {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700; font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 1.2px; color: var(--accent-gold); margin-bottom: 6px;
+        }
+        .drive-summary .summary-details {
+            font-size: 0.95rem; line-height: 1.7;
+        }
+        .drive-summary .summary-details strong { color: var(--accent-gold); }
+        .drive-summary .edit-link {
+            color: var(--blue-light); font-size: 0.82rem; cursor: pointer;
+            text-decoration: underline; margin-top: 6px; display: inline-block;
+        }
+        .drive-summary .edit-link:hover { color: var(--white); }
+
+        /* ===== STATE BADGE ===== */
+        .state-badge {
+            display: inline-block;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700; font-size: 0.75rem;
+            padding: 4px 10px; border-radius: 20px;
+            letter-spacing: 0.5px; margin-bottom: 14px;
+        }
+        .state-badge.ga { background: rgba(245, 197, 66, 0.15); color: #8b6914; }
+        .state-badge.nc { background: rgba(39, 174, 96, 0.12); color: var(--green-success); }
+
+        /* ===== FORM FIELDS ===== */
+        .field { margin-bottom: 16px; }
+        .field label {
+            display: block; font-weight: 600; font-size: 0.85rem;
+            color: var(--blue-mid); margin-bottom: 5px; letter-spacing: 0.3px;
+        }
+        .field input, .field select {
+            width: 100%; padding: 11px 14px; font-family: 'Open Sans', sans-serif;
+            font-size: 0.95rem; border: 2px solid var(--gray-200); border-radius: 8px;
+            background: var(--gray-50); color: var(--gray-800);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field input:focus, .field select:focus {
+            outline: none; border-color: var(--blue-bright);
+            box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.15); background: var(--white);
+        }
+        .field input::placeholder { color: var(--gray-400); }
+        .field-hint { font-size: 0.78rem; color: var(--gray-600); margin-top: 3px; font-style: italic; }
+        .req { color: var(--red-soft); font-weight: 700; }
+
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .row-4 { display: grid; grid-template-columns: 2fr 2fr 2fr 1fr; gap: 12px; }
+
+        /* ===== VOTER ENTRIES ===== */
+        .voter-entry {
+            background: var(--blue-pale); border: 2px solid rgba(58, 123, 213, 0.2);
+            border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+            position: relative; animation: fadeUp 0.3s ease-out;
+        }
+        .voter-entry .voter-number {
+            font-family: 'Montserrat', sans-serif; font-weight: 700;
+            font-size: 0.8rem; color: var(--blue-bright);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
+        }
+        .remove-voter {
+            position: absolute; top: 12px; right: 12px; width: 28px; height: 28px;
+            border-radius: 50%; border: none; background: rgba(231, 76, 60, 0.1);
+            color: var(--red-soft); font-size: 1.1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+        }
+        .remove-voter:hover { background: rgba(231, 76, 60, 0.2); }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.9rem;
+            padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn:active { transform: scale(0.97); }
+
+        .btn-continue {
+            background: linear-gradient(135deg, var(--blue-bright), var(--blue-mid));
+            color: var(--white); width: 100%; justify-content: center;
+            padding: 15px; font-size: 1rem; font-weight: 700;
+            box-shadow: var(--shadow-md); letter-spacing: 0.3px; margin-top: 8px;
+        }
+        .btn-continue:hover { box-shadow: var(--shadow-lg); filter: brightness(1.05); }
+
+        .btn-add {
+            background: var(--white); color: var(--blue-bright);
+            border: 2px dashed var(--blue-bright); width: 100%;
+            justify-content: center; padding: 14px; font-size: 0.95rem;
+        }
+        .btn-add:hover { background: var(--blue-pale); }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--blue-bright), var(--blue-mid));
+            color: var(--white); width: 100%; justify-content: center;
+            padding: 16px; font-size: 1.05rem; font-weight: 700;
+            box-shadow: var(--shadow-md); letter-spacing: 0.3px;
+        }
+        .btn-submit:hover { box-shadow: var(--shadow-lg); filter: brightness(1.05); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; filter: none; }
+
+        /* ===== STATUS ===== */
+        .status {
+            text-align: center; padding: 16px; border-radius: var(--radius);
+            font-weight: 600; margin-top: 16px; display: none;
+        }
+        .status.success { display: block; background: rgba(39, 174, 96, 0.1); color: var(--green-success); border: 2px solid rgba(39, 174, 96, 0.3); }
+        .status.error { display: block; background: rgba(231, 76, 60, 0.1); color: var(--red-soft); border: 2px solid rgba(231, 76, 60, 0.3); }
+        .status.sending { display: block; background: rgba(58, 123, 213, 0.1); color: var(--blue-bright); border: 2px solid rgba(58, 123, 213, 0.3); }
+
+        /* ===== HIDDEN ===== */
+        .hidden { display: none !important; }
+
+        /* ===== FOOTER ===== */
+        .footer { text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 0.78rem; line-height: 1.7; }
+        .footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .card { padding: 20px 18px; }
+            .row, .row-3 { grid-template-columns: 1fr; }
+            .row-4 { grid-template-columns: 1fr 1fr; }
+            .header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+    <img src="https://drive-scout.netlify.app/images/FT6Logo2.png" alt="Field Team 6 Logo" class="header-logo">
+    <h1>Drive Score</h1>
+    <p>Submit your voter drive results</p>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="container">
+
+    <!-- ========================================== -->
+    <!-- STEP 1: DRIVE INFO (shown first)           -->
+    <!-- ========================================== -->
+    <div id="step1">
+        <div class="card">
+            <div class="card-title"><span class="icon">📋</span> Drive Information</div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="leaderFirst">Drive Leader First Name <span class="req">*</span></label>
+                    <input type="text" id="leaderFirst" placeholder="e.g. Jane" required>
+                </div>
+                <div class="field">
+                    <label for="leaderLast">Drive Leader Last Name <span class="req">*</span></label>
+                    <input type="text" id="leaderLast" placeholder="e.g. Smith" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="driveDate">Date of Drive <span class="req">*</span></label>
+                    <input type="date" id="driveDate" required>
+                </div>
+                <div class="field">
+                    <label for="driveTime">Time of Drive <span class="req">*</span></label>
+                    <input type="time" id="driveTime" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="driveCity">City <span class="req">*</span></label>
+                    <input type="text" id="driveCity" placeholder="e.g. Phoenix" required>
+                </div>
+                <div class="field">
+                    <label for="driveState">State <span class="req">*</span></label>
+                    <select id="driveState" required>
+                        <option value="">Select state…</option>
+                        <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+                        <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+                        <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+                        <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
+                        <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
+                        <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+                        <option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option>
+                        <option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option>
+                        <option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option>
+                        <option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option>
+                        <option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option>
+                        <option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option>
+                        <option>Wisconsin</option><option>Wyoming</option><option>Washington D.C.</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-continue" onclick="continueToVoters()">
+                Continue to Voter Entry →
+            </button>
+            <div id="step1Error" class="status" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- STEP 2: VOTER ENTRY (shown after step 1)   -->
+    <!-- ========================================== -->
+    <div id="step2" class="hidden">
+
+        <!-- Summary bar showing drive info -->
+        <div class="drive-summary" id="driveSummary">
+            <div class="summary-label">Drive Info</div>
+            <div class="summary-details" id="summaryText"></div>
+            <span class="edit-link" onclick="editDriveInfo()">✏️ Edit drive info</span>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span class="icon">🗳️</span> Registered Voters</div>
+
+            <!-- State-specific note -->
+            <div id="stateBadge"></div>
+
+            <div id="voterList">
+                <!-- First voter added by JS based on state -->
+            </div>
+
+            <button type="button" class="btn btn-add" onclick="addVoter()">
+                ＋ Add Another Voter
+            </button>
+        </div>
+
+        <button type="button" class="btn btn-submit" id="submitBtn" onclick="submitForm()">
+            📤 Submit Drive Report
+        </button>
+
+        <div id="statusMsg" class="status"></div>
+    </div>
+
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+    ©2025 Drive Score — A <a href="https://www.fieldteam6.org" target="_blank">Field Team 6</a> Tool<br>
+    Not authorized by any candidate or candidate's committee.
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+    // ============================================================
+    // 🔧 CONFIGURATION — Paste your Google Apps Script URL below
+    // ============================================================
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwc2xDYMYXSgx_zeQ2qg6NXCiIdPqOf_YGeR5f6-E0Y7lVwf4Jx59qMqMBhPcOZvYDcMg/exec";
+    // ============================================================
+
+    let voterCount = 0;
+    let selectedState = "";
+
+    // ---- Determine which date/birth fields to show based on state ----
+    function getDOBMode(state) {
+        if (state === "Georgia") return "yob";        // Year of Birth only
+        if (state === "North Carolina") return "none"; // No DOB at all
+        return "dob";                                  // Full Date of Birth
+    }
+
+    // ---- Build voter HTML based on state ----
+    function voterHTML(num, showRemove) {
+        const mode = getDOBMode(selectedState);
+
+        let dobSection = "";
+        if (mode === "dob") {
+            dobSection = `
+                <div class="field">
+                    <label>Date of Birth <span class="req">*</span></label>
+                    <input type="date" class="v-dob" required>
+                    <div class="field-hint">Month / Day / Full Year</div>
+                </div>`;
+        } else if (mode === "yob") {
+            dobSection = `
+                <div class="field">
+                    <label>Year of Birth <span class="req">*</span></label>
+                    <input type="text" class="v-ga-yob" placeholder="e.g. 2004" required>
+                </div>`;
+        }
+        // mode === "none" (North Carolina) → no DOB section at all
+
+        return `
+            <div class="voter-number">Voter #${num}</div>
+            ${showRemove ? '<button type="button" class="remove-voter" onclick="removeVoter(this)" title="Remove voter">✕</button>' : ''}
+            <div class="row-4">
+                <div class="field">
+                    <label>First Name <span class="req">*</span></label>
+                    <input type="text" class="v-first" placeholder="First" required>
+                </div>
+                <div class="field">
+                    <label>Middle Name</label>
+                    <input type="text" class="v-middle" placeholder="Middle (optional)">
+                </div>
+                <div class="field">
+                    <label>Last Name <span class="req">*</span></label>
+                    <input type="text" class="v-last" placeholder="Last" required>
+                </div>
+                <div class="field">
+                    <label>Suffix</label>
+                    <input type="text" class="v-suffix" placeholder="Jr., II">
+                </div>
+            </div>
+            <div class="field">
+                <label>Street Address <span class="req">*</span></label>
+                <input type="text" class="v-street" placeholder="e.g. 123 Main St, Apt 4" required>
+            </div>
+            <div class="row-3">
+                <div class="field">
+                    <label>City <span class="req">*</span></label>
+                    <input type="text" class="v-city" placeholder="City" required>
+                </div>
+                <div class="field">
+                    <label>State <span class="req">*</span></label>
+                    <input type="text" class="v-state" value="${selectedState}" required>
+                </div>
+                <div class="field">
+                    <label>ZIP Code <span class="req">*</span></label>
+                    <input type="text" class="v-zip" placeholder="ZIP" required>
+                </div>
+            </div>
+            ${dobSection}
+        `;
+    }
+
+    // ---- Step 1 → Step 2 transition ----
+    function continueToVoters() {
+        const first = document.getElementById('leaderFirst').value.trim();
+        const last  = document.getElementById('leaderLast').value.trim();
+        const date  = document.getElementById('driveDate').value;
+        const time  = document.getElementById('driveTime').value;
+        const city  = document.getElementById('driveCity').value.trim();
+        const state = document.getElementById('driveState').value;
+
+        if (!first || !last || !date || !time || !city || !state) {
+            const errEl = document.getElementById('step1Error');
+            errEl.style.display = 'block';
+            errEl.className = 'status error';
+            errEl.textContent = 'Please fill in all fields before continuing.';
+            document.querySelectorAll('#step1 [required]').forEach(inp => {
+                if (!inp.value.trim()) {
+                    inp.style.borderColor = 'var(--red-soft)';
+                    setTimeout(() => inp.style.borderColor = '', 2000);
+                }
+            });
+            return;
+        }
+
+        selectedState = state;
+
+        // Build summary
+        const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+            weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+        });
+        let [h, m] = time.split(':');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        const formattedTime = `${h}:${m} ${ampm}`;
+
+        document.getElementById('summaryText').innerHTML =
+            `<strong>${first} ${last}</strong> · ${formattedDate} at ${formattedTime}<br>${city}, ${state}`;
+
+        // Show state-specific badge
+        const badgeEl = document.getElementById('stateBadge');
+        const mode = getDOBMode(state);
+        if (mode === "yob") {
+            badgeEl.innerHTML = '<div class="state-badge ga">🍑 GEORGIA — Year of birth will be collected instead of full date of birth</div>';
+        } else if (mode === "none") {
+            badgeEl.innerHTML = '<div class="state-badge nc">NORTH CAROLINA — No date of birth is required</div>';
+        } else {
+            badgeEl.innerHTML = '';
+        }
+
+        // Hide step 1, show step 2
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step2').classList.remove('hidden');
+        document.getElementById('driveSummary').style.display = 'block';
+
+        // Add first voter
+        voterCount = 0;
+        document.getElementById('voterList').innerHTML = '';
+        addVoter();
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---- Go back and edit drive info ----
+    function editDriveInfo() {
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step1').classList.remove('hidden');
+        document.getElementById('step1Error').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---- Add voter ----
+    function addVoter() {
+        voterCount++;
+        const list = document.getElementById('voterList');
+        const entry = document.createElement('div');
+        entry.className = 'voter-entry';
+        entry.dataset.index = voterCount;
+        entry.innerHTML = voterHTML(voterCount, voterCount > 1);
+        list.appendChild(entry);
+        if (voterCount > 1) {
+            entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // ---- Remove voter ----
+    function removeVoter(btn) {
+        const entry = btn.closest('.voter-entry');
+        entry.style.opacity = '0';
+        entry.style.transform = 'translateY(-10px)';
+        entry.style.transition = 'opacity 0.25s, transform 0.25s';
+        setTimeout(() => { entry.remove(); renumberVoters(); }, 250);
+    }
+
+    // ---- Renumber ----
+    function renumberVoters() {
+        const entries = document.querySelectorAll('.voter-entry');
+        entries.forEach((entry, i) => {
+            entry.querySelector('.voter-number').textContent = `Voter #${i + 1}`;
+            entry.dataset.index = i + 1;
+        });
+        voterCount = entries.length;
+    }
+
+    // ---- Status ----
+    function showStatus(type, message) {
+        const el = document.getElementById('statusMsg');
+        el.className = 'status ' + type;
+        el.textContent = message;
+    }
+
+    // ---- Validate step 2 ----
+    function validateVoters() {
+        const required = document.querySelectorAll('#step2 [required]');
+        for (const input of required) {
+            if (!input.value.trim()) {
+                input.focus();
+                input.style.borderColor = 'var(--red-soft)';
+                setTimeout(() => { input.style.borderColor = ''; }, 2000);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // ---- Submit ----
+    function submitForm() {
+        if (!validateVoters()) {
+            showStatus('error', 'Please fill in all required fields before submitting.');
+            return;
+        }
+
+        if (GOOGLE_SCRIPT_URL === "PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE") {
+            showStatus('error', 'Google Sheets is not connected yet. Follow the setup instructions to add your script URL.');
+            return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        showStatus('sending', 'Sending report to Google Sheets…');
+
+        const driveInfo = {
+            leaderFirst: document.getElementById('leaderFirst').value.trim(),
+            leaderLast:  document.getElementById('leaderLast').value.trim(),
+            driveDate:   document.getElementById('driveDate').value,
+            driveTime:   document.getElementById('driveTime').value,
+            city:        document.getElementById('driveCity').value.trim(),
+            state:       document.getElementById('driveState').value
+        };
+
+        const mode = getDOBMode(selectedState);
+        const voters = [];
+        document.querySelectorAll('.voter-entry').forEach(entry => {
+            const voter = {
+                firstName:  entry.querySelector('.v-first').value.trim(),
+                middleName: entry.querySelector('.v-middle').value.trim(),
+                lastName:   entry.querySelector('.v-last').value.trim(),
+                suffix:     entry.querySelector('.v-suffix').value.trim(),
+                street:     entry.querySelector('.v-street').value.trim(),
+                city:       entry.querySelector('.v-city').value.trim(),
+                state:      entry.querySelector('.v-state').value.trim(),
+                zip:        entry.querySelector('.v-zip').value.trim(),
+                dob:        "",
+                gaYOB:      ""
+            };
+            if (mode === "dob") {
+                const dobInput = entry.querySelector('.v-dob');
+                if (dobInput && dobInput.value) {
+                    // Convert YYYY-MM-DD from date input to MM/DD/YYYY
+                    const [y, mo, d] = dobInput.value.split('-');
+                    voter.dob = `${mo}/${d}/${y}`;
+                }
+            } else if (mode === "yob") {
+                const yobInput = entry.querySelector('.v-ga-yob');
+                voter.gaYOB = yobInput ? yobInput.value.trim() : "";
+            }
+            voters.push(voter);
+        });
+
+        const payload = { driveInfo, voters };
+
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            showStatus('success', '✅ Drive report submitted successfully! Data has been added to the Google Sheet.');
+            btn.disabled = false;
+            setTimeout(() => {
+                if (confirm('Report submitted! Would you like to clear the voter list and add more voters for this same drive?')) {
+                    clearVotersOnly();
+                } else if (confirm('Would you like to start a completely new drive report?')) {
+                    resetAll();
+                }
+            }, 800);
+        })
+        .catch(err => {
+            showStatus('error', 'Something went wrong. Please check your internet connection and try again.');
+            btn.disabled = false;
+            console.error(err);
+        });
+    }
+
+    // ---- Clear just the voters (keep drive info) ----
+    function clearVotersOnly() {
+        document.getElementById('voterList').innerHTML = '';
+        voterCount = 0;
+        addVoter();
+        document.getElementById('statusMsg').className = 'status';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---- Full reset ----
+    function resetAll() {
+        document.getElementById('leaderFirst').value = '';
+        document.getElementById('leaderLast').value = '';
+        document.getElementById('driveDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('driveTime').value = '';
+        document.getElementById('driveCity').value = '';
+        document.getElementById('driveState').value = '';
+        document.getElementById('voterList').innerHTML = '';
+        voterCount = 0;
+        selectedState = '';
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step1').classList.remove('hidden');
+        document.getElementById('statusMsg').className = 'status';
+        document.getElementById('step1Error').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---- Default date ----
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('driveDate').value = new Date().toISOString().split('T')[0];
+    });
+</script>
+
+</body>
+</html>
