@@ -224,6 +224,35 @@
         .footer { text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 0.78rem; line-height: 1.7; }
         .footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
 
+        /* ===== FAQ ===== */
+        .faq-btn-wrapper { text-align: center; margin: 30px 0 20px; }
+        .faq-toggle-btn {
+            background: #03013c; color: white; padding: 12px 25px; border: none;
+            border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: bold;
+            font-family: 'Raleway', sans-serif; transition: all 0.3s ease;
+        }
+        .faq-toggle-btn:hover { background: #1a1a5e; transform: translateY(-2px); }
+        .faq-container {
+            display: none; background: white; border-radius: 15px;
+            padding: 30px; margin: 20px auto; max-width: 720px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .faq-container.show { display: block; }
+        .faq-header { text-align: center; margin-bottom: 30px; }
+        .faq-header h2 { color: #333; font-size: 2rem; margin-bottom: 10px; font-family: 'Montserrat', sans-serif; }
+        .faq-close {
+            background: var(--blue-bright); color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+            font-weight: bold; font-family: 'Raleway', sans-serif; transition: all 0.3s ease;
+        }
+        .faq-close:hover { background: var(--blue-mid); transform: translateY(-2px); }
+        .faq-item { margin-bottom: 25px; border-bottom: 1px solid #e1e5e9; padding-bottom: 20px; }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-question { font-weight: bold; color: #333; font-size: 1.1rem; margin-bottom: 10px; }
+        .faq-answer { color: #666; line-height: 1.6; font-size: 0.95rem; }
+        .faq-answer a { color: var(--blue-bright); text-decoration: none; font-weight: 600; }
+        .faq-answer a:hover { text-decoration: underline; }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             .card { padding: 20px 18px; }
@@ -232,6 +261,8 @@
             .header h1 { font-size: clamp(2.2rem, 11.2vw, 3.5rem); }
             .header-logo { width: 70px; height: 70px; }
             .header-title-row { gap: 15px; }
+            .faq-container { margin: 10px; padding: 20px; }
+            .faq-header h2 { font-size: 1.5rem; }
         }
     </style>
 </head>
@@ -346,6 +377,35 @@
         <div id="statusMsg" class="status"></div>
     </div>
 
+</div>
+
+<!-- ===== FAQ ===== -->
+<div class="faq-btn-wrapper">
+    <button class="faq-toggle-btn" onclick="toggleFAQ()">FAQ</button>
+</div>
+
+<div id="faqContainer" class="faq-container">
+    <div class="faq-header">
+        <h2>🎯 Drive Score FAQ</h2>
+        <button class="faq-close" onclick="toggleFAQ()">Close FAQ</button>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-question">Why do you need this info?</div>
+        <div class="faq-answer">We need this basic info 1) to calculate how many voters we're registering, and 2) so we can find out if they voted or not after the next election! You and our thousands of volunteers are doing so much good, but if we can't measure that good so we can tell the world, we can't get more volunteers and donors.<br><br><em>Reporting your Drive Score is literally what keeps Field Team 6 alive and thriving!</em></div>
+    </div>
+
+    <div class="faq-item">
+        <div class="faq-question">Are my Drive Score results shared with the Democratic Party, any campaign, or any list?</div>
+        <div class="faq-answer">Absolutely not. Drive Score is a project of <a href="https://www.fieldteam6.org" target="_blank">Field Team 6</a>, a proudly partisan voter registration organization. Our legal designation is a 527 federal PAC working on the IE side.</div>
+    </div>
+
+    <div class="faq-item" style="border-bottom: none; text-align: center; padding-top: 10px;">
+        <div class="faq-answer" style="font-size: 1rem;">
+            <strong>Any questions or feedback? Contact us at: <a href="mailto:info@FieldTeam6.org">info@FieldTeam6.org</a></strong><br><br>
+            <em style="font-size: 1.2rem; color: var(--blue-bright); font-weight: bold;">Thank you for registering Democrats, and saving the world!</em>
+        </div>
+    </div>
 </div>
 
 <!-- ===== FOOTER ===== -->
@@ -671,6 +731,19 @@
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('driveDate').value = new Date().toISOString().split('T')[0];
     });
+
+    // ---- FAQ toggle ----
+    function toggleFAQ() {
+        const faqContainer = document.getElementById('faqContainer');
+        if (faqContainer) {
+            faqContainer.classList.toggle('show');
+            if (faqContainer.classList.contains('show')) {
+                setTimeout(() => {
+                    faqContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+    }
 </script>
 
 </body>
