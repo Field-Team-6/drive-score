@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drive Score — Field Team 6</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600&family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --blue-dark: #1a2744;
@@ -32,7 +32,9 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Open Sans', sans-serif;
+            font-family: 'Raleway', sans-serif;
+            font-style: normal;
+            font-weight: 400;
             background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 50%, #1e3a5f 100%);
             min-height: 100vh;
             color: var(--gray-800);
@@ -50,10 +52,26 @@
             top: 0;
             z-index: 100;
         }
-        .header-logo { height: 70px; margin-bottom: 10px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-        .header h1 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 2.2rem; color: var(--white); letter-spacing: 0.5px; margin-bottom: 4px; }
-        .header .tagline { color: var(--blue-light); font-size: 1rem; font-weight: 500; line-height: 1.6; }
-        .header .tagline-italic { color: rgba(255,255,255,0.6); font-size: 0.88rem; font-style: italic; margin-top: 2px; }
+        .header-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 10px;
+        }
+        .header-logo { width: 110px; height: 110px; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+        .header h1 {
+            margin: 0;
+            font-family: 'Typewriter Serial ExtraBold', 'American Typewriter', 'Courier New Bold', 'Monaco Bold', 'Andale Mono', 'Lucida Console', monospace;
+            font-size: clamp(3.36rem, 11.2vw, 6.72rem);
+            font-weight: 900;
+            letter-spacing: normal;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+            color: #ffffff;
+            line-height: 0.85;
+        }
+        .header .tagline { color: var(--blue-light); font-size: 1.1rem; font-weight: 500; line-height: 1.6; opacity: 0.9; }
+        .header .tagline-italic { color: var(--blue-light); font-size: 1.1rem; font-style: italic; font-weight: 500; margin-top: 2px; opacity: 0.9; }
 
         /* ===== CONTAINER ===== */
         .container { max-width: 720px; margin: 24px auto; padding: 0 16px 40px; }
@@ -121,7 +139,7 @@
             color: var(--blue-mid); margin-bottom: 5px; letter-spacing: 0.3px;
         }
         .field input, .field select {
-            width: 100%; padding: 11px 14px; font-family: 'Open Sans', sans-serif;
+            width: 100%; padding: 11px 14px; font-family: 'Raleway', sans-serif;
             font-size: 0.95rem; border: 2px solid var(--gray-200); border-radius: 8px;
             background: var(--gray-50); color: var(--gray-800);
             transition: border-color 0.2s, box-shadow 0.2s;
@@ -211,7 +229,9 @@
             .card { padding: 20px 18px; }
             .row, .row-3 { grid-template-columns: 1fr; }
             .row-4 { grid-template-columns: 1fr 1fr; }
-            .header h1 { font-size: 1.6rem; }
+            .header h1 { font-size: clamp(2.2rem, 11.2vw, 3.5rem); }
+            .header-logo { width: 70px; height: 70px; }
+            .header-title-row { gap: 15px; }
         }
     </style>
 </head>
@@ -219,8 +239,10 @@
 
 <!-- ===== HEADER ===== -->
 <div class="header">
-    <img src="https://drive-scout.netlify.app/images/FT6Logo2.png" alt="Field Team 6 Logo" class="header-logo">
-    <h1>Drive Score</h1>
+    <div class="header-title-row">
+        <img src="https://drive-scout.netlify.app/images/FT6Logo2.png" alt="Field Team 6 Logo" class="header-logo">
+        <h1>Drive Score</h1>
+    </div>
     <div class="tagline">Report your voter drive results. Every voter counts!</div>
     <div class="tagline-italic">Because in this game, the high score is saving our democracy.</div>
 </div>
