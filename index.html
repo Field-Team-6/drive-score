@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2033,4 +2033,13 @@
     // ---- FAQ toggle ----
     function toggleFAQ() {
         const faqContainer = document.getElementById('faqContainer');
-        if (faqConta
+        if (faqContainer.classList.contains('show')) {
+            faqContainer.classList.remove('show');
+        } else {
+            faqContainer.classList.add('show');
+        }
+    }
+</script>
+
+</body>
+</html>
