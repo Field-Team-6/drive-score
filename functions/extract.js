@@ -38,7 +38,7 @@ exports.handler = async function (event) {
 
     // State-specific DOB instructions
     let dobInstruction = "";
-    if (state === "Georgia" || state === "Colorado") {
+    if (state === "Georgia" || state === "Colorado" || state === "Connecticut") {
       dobInstruction = "yearOfBirth = 4-digit year only. Leave dob empty.";
     } else if (state === "North Carolina") {
       dobInstruction = "Leave dob and yearOfBirth empty.";
