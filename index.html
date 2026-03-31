@@ -12,7 +12,7 @@
             --blue-mid: #2b4c7e;
             --blue-bright: #3a7bd5;
             --blue-light: #5b9ef0;
-            --blue-pale: #e8f0fe;
+            --blue-pale: #e8f0fe
             --accent-gold: #f5c542;
             --white: #ffffff;
             --gray-50: #f8f9fa;
@@ -843,7 +843,7 @@
             <div id="yobField" class="field hidden">
                 <label for="vYOB">Year of Birth <span class="req">*</span></label>
                 <input type="text" id="vYOB" placeholder="e.g. 2004">
-                <div class="field-hint">Georgia and Colorado require year of birth only</div>
+                <div class="field-hint">Georgia, Colorado, and Connecticut require year of birth only</div>
             </div>
         </div>
 
@@ -1321,7 +1321,7 @@
         // Set scan guidance based on state
         const importantPrefix = '<span style="color: var(--red-soft); font-weight: 800;">IMPORTANT:</span> ';
         let scanTip = importantPrefix + "Turn the phone horizontal (landscape) and get as close to the form as you can, while keeping name, address and date of birth visible.";
-        if (state === "Georgia" || state === "Colorado") {
+        if (state === "Georgia" || state === "Colorado" || state === "Connecticut") {
             scanTip = importantPrefix + "Turn the phone horizontal (landscape) and get as close to the form as you can, while keeping name, address and year of birth visible.";
         } else if (state === "North Carolina") {
             scanTip = importantPrefix + "Turn the phone horizontal (landscape) and get as close to the form as you can, while keeping name and address visible.";
@@ -1345,7 +1345,7 @@
         const dobField = document.getElementById("dobField");
         const yobField = document.getElementById("yobField");
 
-        if (selectedState === "Georgia" || selectedState === "Colorado") {
+        if (selectedState === "Georgia" || selectedState === "Colorado" || selectedState === "Connecticut") {
             dobField.classList.add("hidden");
             yobField.classList.remove("hidden");
         } else if (selectedState === "North Carolina") {
@@ -1373,7 +1373,7 @@
         document.getElementById("vZip").value = data.zip || "";
 
         // Handle DOB based on state
-        if (selectedState === "Georgia" || selectedState === "Colorado") {
+        if (selectedState === "Georgia" || selectedState === "Colorado" || selectedState === "Connecticut") {
             document.getElementById("vYOB").value = data.yearOfBirth || "";
         } else if (selectedState !== "North Carolina") {
             // Standard DOB — parse and set the 3 dropdowns
@@ -1455,7 +1455,7 @@
         }
 
         // Validate state-specific DOB
-        if (selectedState === "Georgia" || selectedState === "Colorado") {
+        if (selectedState === "Georgia" || selectedState === "Colorado" || selectedState === "Connecticut") {
             const yob = document.getElementById("vYOB").value.trim();
             if (!yob || !/^\d{4}$/.test(yob)) {
                 showError("reviewError", "Please enter a valid 4-digit year of birth.");
@@ -1488,7 +1488,7 @@
             gaYOB: ""
         };
 
-        if (selectedState === "Georgia" || selectedState === "Colorado") {
+        if (selectedState === "Georgia" || selectedState === "Colorado" || selectedState === "Connecticut") {
             voterData.gaYOB = document.getElementById("vYOB").value.trim();
         } else if (selectedState !== "North Carolina") {
             const m = document.getElementById("vDOBMonth").value;
