@@ -1323,7 +1323,7 @@
         let scanTip = importantPrefix + "Turn the phone horizontal (landscape) and get as close to the form as you can, while keeping name, address and date of birth visible.";
         if (state === "Georgia" || state === "Colorado" || state === "Connecticut") {
             scanTip = importantPrefix + "Turn the phone horizontal (landscape) and get as close to the form as you can, while keeping name, address and year of birth visible.";
-        } else if (state === "North Carolina") {
+        } else if (state === "North Carolina" || state === "Wisconsin") {
             scanTip = importantPrefix + "Turn the phone horizontal (landscape) and get as close to the form as you can, while keeping name and address visible.";
         }
         document.getElementById("scanHint").innerHTML = scanTip;
@@ -1348,7 +1348,7 @@
         if (selectedState === "Georgia" || selectedState === "Colorado" || selectedState === "Connecticut") {
             dobField.classList.add("hidden");
             yobField.classList.remove("hidden");
-        } else if (selectedState === "North Carolina") {
+        } else if (selectedState === "North Carolina" || selectedState === "Wisconsin") {
             dobField.classList.add("hidden");
             yobField.classList.add("hidden");
         } else {
@@ -1375,7 +1375,7 @@
         // Handle DOB based on state
         if (selectedState === "Georgia" || selectedState === "Colorado" || selectedState === "Connecticut") {
             document.getElementById("vYOB").value = data.yearOfBirth || "";
-        } else if (selectedState !== "North Carolina") {
+        } else if (selectedState !== "North Carolina" && selectedState !== "Wisconsin") {
             // Standard DOB — parse and set the 3 dropdowns
             if (data.dob) {
                 const parsed = parseDOB(data.dob);
@@ -1461,7 +1461,7 @@
                 showError("reviewError", "Please enter a valid 4-digit year of birth.");
                 return false;
             }
-        } else if (selectedState !== "North Carolina") {
+        } else if (selectedState !== "North Carolina" && selectedState !== "Wisconsin") {
             const dobMonth = document.getElementById("vDOBMonth").value;
             const dobDay = document.getElementById("vDOBDay").value;
             const dobYear = document.getElementById("vDOBYear").value;
@@ -1490,7 +1490,7 @@
 
         if (selectedState === "Georgia" || selectedState === "Colorado" || selectedState === "Connecticut") {
             voterData.gaYOB = document.getElementById("vYOB").value.trim();
-        } else if (selectedState !== "North Carolina") {
+        } else if (selectedState !== "North Carolina" && selectedState !== "Wisconsin") {
             const m = document.getElementById("vDOBMonth").value;
             const d = document.getElementById("vDOBDay").value;
             const y = document.getElementById("vDOBYear").value;
