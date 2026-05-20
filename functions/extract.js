@@ -40,7 +40,7 @@ exports.handler = async function (event) {
     let dobInstruction = "";
     if (state === "Georgia" || state === "Colorado" || state === "Connecticut") {
       dobInstruction = "yearOfBirth = 4-digit year only. Leave dob empty.";
-    } else if (state === "North Carolina") {
+    } else if (state === "North Carolina" || state === "Wisconsin") {
       dobInstruction = "Leave dob and yearOfBirth empty.";
     } else {
       dobInstruction = "dob = full date in MM/DD/YYYY format. If year is 2 digits, convert to 4 (e.g. 74 → 1974).";
