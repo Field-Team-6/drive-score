@@ -3,7 +3,7 @@
 // ============================================================
 // Set CLAUDE_API_KEY in Netlify environment variables
 // ============================================================
-
+// Redeploy trigger: repo set to public so Netlify can build.
 const CLAUDE_MODEL = "claude-opus-4-8";
 
 exports.handler = async function (event) {
