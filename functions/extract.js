@@ -81,7 +81,6 @@ exports.handler = async function (event) {
       body: JSON.stringify({
         model: CLAUDE_MODEL,
         max_tokens: 800,
-        temperature: 0,
         system: systemPrompt,
         messages: [
           {
