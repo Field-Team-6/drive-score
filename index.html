@@ -399,6 +399,44 @@
         .status.error { display: block; background: rgba(231, 76, 60, 0.1); color: var(--red-soft); border: 2px solid rgba(231, 76, 60, 0.3); }
         .status.sending { display: block; background: rgba(58, 123, 213, 0.1); color: var(--blue-bright); border: 2px solid rgba(58, 123, 213, 0.3); }
 
+        /* ===== HAVING TROUBLE / FEEDBACK ===== */
+        .trouble-wrap { text-align: center; margin-top: 16px; }
+        .trouble-link {
+            background: none; border: none;
+            color: rgba(255,255,255,0.55);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem; font-weight: 600;
+            text-decoration: underline; cursor: pointer;
+            padding: 8px 12px;
+        }
+        .trouble-link:hover { color: rgba(255,255,255,0.92); }
+        .trouble-link.alert {
+            color: var(--accent-gold);
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        .feedback-intro {
+            color: var(--gray-600); font-size: 0.9rem;
+            line-height: 1.55; margin-bottom: 14px;
+        }
+        #feedbackText {
+            width: 100%; padding: 14px;
+            border: 2px solid #e5e7eb; border-radius: var(--radius);
+            font-family: 'Montserrat', sans-serif; font-size: 1rem;
+            resize: vertical; box-sizing: border-box;
+        }
+        #feedbackText:focus { outline: none; border-color: var(--blue-bright); }
+        .feedback-diag {
+            margin-top: 12px; padding: 11px 13px;
+            background: var(--blue-pale); border-radius: 8px;
+            color: var(--gray-600); font-size: 0.78rem;
+            line-height: 1.6; word-break: break-word;
+        }
+        .feedback-thanks {
+            margin-top: 14px; text-align: center;
+            color: var(--green-success); font-weight: 700;
+        }
+
         /* ===== HIDDEN ===== */
         .hidden { display: none !important; }
 
@@ -738,6 +776,10 @@
             <div id="scanError" class="status" style="display:none;"></div>
         </div>
 
+        <div class="trouble-wrap">
+            <button type="button" class="trouble-link" id="troubleLinkScan" onclick="toggleFeedback()">Having trouble? Tell us what happened</button>
+        </div>
+
         <button type="button" class="btn btn-done" id="finishDriveBtn" onclick="finishDrive()">
             No voter forms today — but I'd like to send Event Photos and/or Volunteer Sign-Up Sheets!
         </button>
@@ -945,6 +987,29 @@
                 🔄 Restart Drive Score
             </button>
         </div>
+
+        <div class="trouble-wrap">
+            <button type="button" class="trouble-link" onclick="toggleFeedback()">Having trouble? Tell us what happened</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- HAVING TROUBLE? — shared feedback panel    -->
+    <!-- ========================================== -->
+    <div id="feedbackPanel" class="hidden">
+        <div class="card">
+            <div class="card-title">🛠️ Having trouble?</div>
+            <p class="feedback-intro">
+                Tell us what went wrong and we'll get it fixed. Your phone and browser details are
+                attached automatically so we can reproduce it — <strong>nothing from any voter form is sent.</strong>
+            </p>
+            <textarea id="feedbackText" rows="4" placeholder="e.g. I take the photo and it says scan failed every time"></textarea>
+            <div id="feedbackDiag" class="feedback-diag"></div>
+            <div id="feedbackError" class="status"></div>
+            <button type="button" class="btn btn-continue" id="feedbackSendBtn" onclick="sendFeedback()">Send to Field Team 6</button>
+            <button type="button" class="btn btn-rescan" onclick="toggleFeedback()">Cancel</button>
+            <div id="feedbackThanks" class="feedback-thanks hidden">✅ Thank you — we got it. Someone will take a look.</div>
+        </div>
     </div>
 
 </div>
@@ -1042,6 +1107,7 @@
     let drivePhotos = [];   // Array of { file, objectURL, base64 }
     let signupPhotos = [];  // Array of { file, objectURL, base64 }
     let totalPhotosSent = 0;
+    let lastScanError = "";   // most recent scan failure, attached to feedback reports
 
     // ---- Set today's date as default ----
     document.addEventListener("DOMContentLoaded", () => {
@@ -1146,8 +1212,15 @@
             window.scrollTo({ top: 0, behavior: "smooth" });
 
         } catch (err) {
+            lastScanError = "Scan failed: " + err.message;
             showError("scanError", "Scan failed: " + err.message + " — You can try again or enter data manually.");
             document.getElementById("scanArea").style.display = "block";
+            // Make the feedback link obvious once something has actually broken
+            const tl = document.getElementById("troubleLinkScan");
+            if (tl) {
+                tl.classList.add("alert");
+                tl.textContent = "Having trouble? Tell us what happened →";
+            }
         } finally {
             document.getElementById("processingOverlay").classList.remove("active");
             document.getElementById("scanFile").value = "";
@@ -1983,6 +2056,164 @@
     }
 
     // ---- Error handling ----
+    // ================================================================
+    // "HAVING TROUBLE?" FEEDBACK
+    // ================================================================
+
+    // Detect phone / OS / browser so volunteers don't have to describe them
+    function detectEnvironment() {
+        const ua = navigator.userAgent;
+        let device = "Unknown", os = "Unknown", browser = "Unknown";
+
+        if (/iPad/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1)) device = "iPad";
+        else if (/iPhone/i.test(ua)) device = "iPhone";
+        else if (/Android/i.test(ua)) device = /Mobile/i.test(ua) ? "Android phone" : "Android tablet";
+        else if (/Macintosh/i.test(ua)) device = "Mac";
+        else if (/Windows/i.test(ua)) device = "Windows PC";
+
+        const iosVer = ua.match(/OS (\d+[_\d]*) like Mac OS X/);
+        const andVer = ua.match(/Android (\d+(?:\.\d+)?)/);
+        const macVer = ua.match(/Mac OS X (\d+[_\d]*)/);
+        const winVer = ua.match(/Windows NT ([\d.]+)/);
+        if (iosVer) os = "iOS " + iosVer[1].replace(/_/g, ".");
+        else if (andVer) os = "Android " + andVer[1];
+        else if (macVer) os = "macOS " + macVer[1].replace(/_/g, ".");
+        else if (winVer) os = "Windows NT " + winVer[1];
+
+        const chromeV = ua.match(/Chrome\/(\d+)/);
+        const firefoxV = ua.match(/Firefox\/(\d+)/);
+        const safariV = ua.match(/Version\/(\d+(?:\.\d+)?)/);
+        if (/CriOS\/(\d+)/.test(ua)) browser = "Chrome for iOS " + ua.match(/CriOS\/(\d+)/)[1];
+        else if (/FxiOS/i.test(ua)) browser = "Firefox for iOS";
+        else if (/EdgiOS|Edg\//i.test(ua)) browser = "Edge";
+        else if (/OPR\//i.test(ua)) browser = "Opera";
+        else if (chromeV) browser = "Chrome " + chromeV[1];
+        else if (firefoxV) browser = "Firefox " + firefoxV[1];
+        else if (/Safari\//i.test(ua)) browser = "Safari" + (safariV ? " " + safariV[1] : "");
+
+        let standalone = false;
+        try {
+            standalone = (window.navigator.standalone === true) ||
+                (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+        } catch (e) {}
+
+        return {
+            device: device,
+            os: os,
+            browser: browser,
+            screen: window.screen.width + "x" + window.screen.height +
+                    " @" + (window.devicePixelRatio || 1) + "x" +
+                    (standalone ? " (home screen app)" : ""),
+            userAgent: ua,
+            pageUrl: window.location.href
+        };
+    }
+
+    // Which step is the volunteer looking at right now?
+    function currentStepName() {
+        const names = {
+            step1: "Drive info (step 1)",
+            step2: "Scan (step 2)",
+            step3: "Review (step 3)",
+            step4: "Photos (step 4)",
+            step5: "Finished (step 5)"
+        };
+        for (const id in names) {
+            const el = document.getElementById(id);
+            if (el && !el.classList.contains("hidden")) return names[id];
+        }
+        return "Unknown";
+    }
+
+    function toggleFeedback() {
+        const panel = document.getElementById("feedbackPanel");
+        const opening = panel.classList.contains("hidden");
+
+        if (!opening) {
+            panel.classList.add("hidden");
+            return;
+        }
+
+        const env = detectEnvironment();
+        let diag = "Attached automatically: " + env.device + " · " + env.os +
+                   " · " + env.browser + " · screen " + env.screen +
+                   "<br>Page: " + env.pageUrl;
+        if (lastScanError) diag += "<br>Last error: " + lastScanError;
+        document.getElementById("feedbackDiag").innerHTML = diag;
+
+        document.getElementById("feedbackThanks").classList.add("hidden");
+        document.getElementById("feedbackSendBtn").classList.remove("hidden");
+        hideError("feedbackError");
+
+        panel.classList.remove("hidden");
+        panel.scrollIntoView({ behavior: "smooth", block: "center" });
+        document.getElementById("feedbackText").focus();
+    }
+
+    async function sendFeedback() {
+        const msg = document.getElementById("feedbackText").value.trim();
+        if (!msg) {
+            showError("feedbackError", "Please tell us what happened first.");
+            return;
+        }
+        hideError("feedbackError");
+
+        const btn = document.getElementById("feedbackSendBtn");
+        btn.disabled = true;
+        btn.textContent = "Sending…";
+
+        const env = detectEnvironment();
+
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                redirect: "follow",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    action: "feedback",
+                    feedback: {
+                        message: msg,
+                        step: currentStepName(),
+                        lastError: lastScanError,
+                        pageUrl: env.pageUrl,
+                        device: env.device,
+                        os: env.os,
+                        browser: env.browser,
+                        screen: env.screen,
+                        userAgent: env.userAgent,
+                        voterCount: voterCount
+                    },
+                    driveInfo: {
+                        leaderFirst: document.getElementById("leaderFirst").value.trim(),
+                        leaderLast: document.getElementById("leaderLast").value.trim(),
+                        city: document.getElementById("driveCity").value.trim(),
+                        state: selectedState
+                    }
+                })
+            });
+
+            const text = await response.text();
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (parseErr) {
+                throw new Error("Unexpected response from server.");
+            }
+            if (result.error) throw new Error(result.error);
+
+            document.getElementById("feedbackText").value = "";
+            btn.classList.add("hidden");
+            document.getElementById("feedbackThanks").classList.remove("hidden");
+
+        } catch (err) {
+            showError("feedbackError", "Couldn't send: " + err.message +
+                " — please try again, or email info@fieldteam6.org.");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Send to Field Team 6";
+        }
+    }
+
     function showError(id, msg) {
         const el = document.getElementById(id);
         el.textContent = msg;
