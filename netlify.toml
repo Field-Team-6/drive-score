@@ -5,6 +5,20 @@
 [functions]
   node_bundler = "esbuild"
 
-# Increase function timeout for large image processing
+# Note: Netlify function timeouts are fixed and NOT configurable.
+# Synchronous functions get 60s. Do not add a "timeout" key here.
 [functions."extract"]
   external_node_modules = []
+
+# ---------------------------------------------------------------
+# Retired duplicate deploy.
+# drive-score-classic.netlify.app serves this same repo but has no
+# CLAUDE_API_KEY set, so every scan there fails. Send those visitors
+# to the working app. Scoped to that hostname, so the main site
+# (built from this same repo) is unaffected.
+# ---------------------------------------------------------------
+[[redirects]]
+  from = "https://drive-score-classic.netlify.app/*"
+  to = "https://drive-score.netlify.app/:splat"
+  status = 301
+  force = true
