@@ -1107,6 +1107,52 @@
     let drivePhotos = [];   // Array of { file, objectURL, base64 }
     let signupPhotos = [];  // Array of { file, objectURL, base64 }
     let totalPhotosSent = 0;
+
+    // ---- Drive session persistence ----
+    // Phones (especially iPhones) can silently reload the page while the camera is open.
+    // We save the drive info + voter count so a reload drops the leader back on the
+    // scan step instead of a blank form. Cleared on "Restart Drive Score" or after 12 hours.
+    const DRIVE_SESSION_KEY = "driveScoreSession";
+    const DRIVE_SESSION_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+    function saveDriveSession() {
+        try {
+            localStorage.setItem(DRIVE_SESSION_KEY, JSON.stringify({
+                leaderFirst: document.getElementById("leaderFirst").value.trim(),
+                leaderLast: document.getElementById("leaderLast").value.trim(),
+                driveDate: document.getElementById("driveDate").value,
+                driveTime: document.getElementById("driveTime").value,
+                city: document.getElementById("driveCity").value.trim(),
+                state: selectedState,
+                voterCount: voterCount,
+                savedAt: Date.now()
+            }));
+        } catch (e) { /* storage unavailable (private mode etc.) — app still works, just without resume */ }
+    }
+
+    function clearDriveSession() {
+        try { localStorage.removeItem(DRIVE_SESSION_KEY); } catch (e) {}
+    }
+
+    function restoreDriveSession() {
+        let s = null;
+        try { s = JSON.parse(localStorage.getItem(DRIVE_SESSION_KEY) || "null"); } catch (e) { return false; }
+        if (!s || !s.state || !s.leaderFirst || !s.leaderLast || !s.city || !s.driveDate || !s.driveTime) return false;
+        if (!s.savedAt || (Date.now() - s.savedAt) > DRIVE_SESSION_MAX_AGE_MS) { clearDriveSession(); return false; }
+
+        document.getElementById("leaderFirst").value = s.leaderFirst;
+        document.getElementById("leaderLast").value = s.leaderLast;
+        document.getElementById("driveDate").value = s.driveDate;
+        document.getElementById("driveTime").value = s.driveTime;
+        document.getElementById("driveCity").value = s.city;
+        document.getElementById("driveState").value = s.state;
+        voterCount = s.voterCount || 0;
+        document.getElementById("voterCountNum").textContent = voterCount;
+
+        // Reuse the normal path so summary, DOB fields and scan tips are all set up
+        continueToScan();
+        return true;
+    }
     let lastScanError = "";   // most recent scan failure, attached to feedback reports
 
     // ---- Set today's date as default ----
@@ -1142,6 +1188,9 @@
             opt.textContent = y;
             yearSelect.appendChild(opt);
         }
+
+        // If the page reloaded mid-drive, pick up where the leader left off
+        restoreDriveSession();
     });
 
     // Handle scan capture — skip preview, go straight to extraction
@@ -1181,6 +1230,9 @@
 
             const sizeMB = (base64.length / 1024 / 1024).toFixed(1);
             document.querySelector(".processing-subtext").textContent = `${sizeMB}MB`;
+
+            // Free the full-size image right away — phones run out of memory fast
+            if (img && typeof img.close === "function") img.close();
 
             // Send to Netlify function (direct to Claude API — no Apps Script middleman)
             const response = await fetch(EXTRACT_URL, {
@@ -1362,7 +1414,10 @@
                 ctx.drawImage(img, 0, 0, outW, outH);
         }
 
-        return canvas.toDataURL("image/jpeg", quality).split(",")[1];
+        const dataUrl = canvas.toDataURL("image/jpeg", quality).split(",")[1];
+        canvas.width = 0;
+        canvas.height = 0;
+        return dataUrl;
     }
 
     // ================================================================
@@ -1382,6 +1437,7 @@
         }
         hideError("step1Error");
         selectedState = state;
+        saveDriveSession();
 
         // Populate summary
         const summary = `${first} ${last} · ${formatDate(date)} at ${formatTime(time)} · ${city}, ${state}`;
@@ -1612,6 +1668,7 @@
 
             voterCount++;
             document.getElementById("voterCountNum").textContent = voterCount;
+            saveDriveSession();
             document.getElementById("finishDriveBtn").textContent = "No more voter forms today! But I\u2019d like to send Event Photos and/or Volunteer Sign-Up Sheets (if I have \u2018em) and finish up!";
             return true;
 
@@ -1676,6 +1733,7 @@
     }
 
     function showFinalScreen() {
+        clearDriveSession();
         document.getElementById("step4").classList.add("hidden");
         document.getElementById("step5").classList.remove("hidden");
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1848,7 +1906,9 @@
         const applyOrientation = needsManualRotation ? orientation : 1;
 
         // Compress to max 1600px, quality 0.85 — good balance of quality vs size
-        return resizeAndCompress(img, 1600, 0.85, applyOrientation);
+        const compressed = resizeAndCompress(img, 1600, 0.85, applyOrientation);
+        if (img && typeof img.close === "function") img.close();
+        return compressed;
     }
 
     async function sendPhotos() {
@@ -2028,6 +2088,7 @@
 
     function startNewDrive() {
         // Full reset
+        clearDriveSession();
         voterCount = 0;
         selectedState = "";
         drivePhotos = [];
