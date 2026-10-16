@@ -1201,6 +1201,7 @@
         // Hide scan area, show processing immediately
         document.getElementById("scanArea").style.display = "none";
         document.getElementById("processingOverlay").classList.add("active");
+        document.querySelector(".processing-text").textContent = "Reading the form…";
         document.querySelector(".processing-subtext").textContent = "This usually takes a few seconds";
         hideError("scanError");
 
@@ -1234,27 +1235,10 @@
             // Free the full-size image right away — phones run out of memory fast
             if (img && typeof img.close === "function") img.close();
 
-            // Send to Netlify function (direct to Claude API — no Apps Script middleman)
-            const response = await fetch(EXTRACT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    image: base64,
-                    state: selectedState
-                })
-            });
-
-            const text = await response.text();
-            let result;
-            try {
-                result = JSON.parse(text);
-            } catch (parseErr) {
-                throw new Error("Unexpected response from server. Please try again.");
-            }
-
-            if (result.error) {
-                throw new Error(result.error);
-            }
+            // Send to Netlify function (direct to Claude API — no Apps Script middleman).
+            // Automatically re-sends the SAME scan up to 3 times if the server times out
+            // or hiccups, so the volunteer does not have to re-shoot the form.
+            const result = await extractWithRetry(base64, 3);
 
             populateReviewForm(result);
 
@@ -1277,6 +1261,44 @@
             document.getElementById("processingOverlay").classList.remove("active");
             document.getElementById("scanFile").value = "";
         }
+    }
+
+    // ================================================================
+    // EXTRACTION WITH AUTO-RETRY
+    // Netlify cuts synchronous functions off at 10 seconds. If the AI is slow
+    // that one time, the volunteer used to see "Scan failed" and had to re-shoot.
+    // Now we resend the same image a couple more times before giving up.
+    // ================================================================
+    async function extractWithRetry(base64, maxAttempts) {
+        let lastErr = null;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            if (attempt > 1) {
+                document.querySelector(".processing-text").textContent = `Still reading… (attempt ${attempt} of ${maxAttempts})`;
+                document.querySelector(".processing-subtext").textContent = "The last try didn't come back cleanly — resending the same scan";
+                await new Promise(r => setTimeout(r, 700));
+            }
+            try {
+                const response = await fetch(EXTRACT_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image: base64, state: selectedState })
+                });
+                const text = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseErr) {
+                    throw new Error("Unexpected response from server (HTTP " + response.status + ").");
+                }
+                if (result.error) throw new Error(result.error);
+                return result;
+            } catch (err) {
+                lastErr = err;
+                // These will not fix themselves on retry — stop early
+                if (/API key not configured|No image provided|Method not allowed/i.test(err.message)) break;
+            }
+        }
+        throw new Error((lastErr ? lastErr.message : "Unknown error") + " (tried " + maxAttempts + " times)");
     }
 
     // ================================================================
