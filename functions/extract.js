@@ -50,7 +50,8 @@ exports.handler = async function (event) {
       "You are a precise OCR transcription tool for handwritten voter registration forms. " +
       "You transcribe ONLY the exact characters written on the form. " +
       "You never correct spelling, autocomplete words, or substitute plausible values. " +
-      "You have no knowledge of real addresses, zip codes, or place names.";
+      "You have no knowledge of real addresses, zip codes, or place names. " +
+      "You identify each field by the PRINTED LABEL next to the box, never by position or by assuming a name order.";
 
     const prompt =
       "Carefully transcribe the handwritten fields from this voter registration form.\n\n" +
@@ -58,6 +59,8 @@ exports.handler = async function (event) {
       "- For the house number: count every digit carefully. Look for 4-digit numbers like 7829, not just 2-3 digits.\n" +
       "- For the street name: this may be an unusual or made-up word. Read each letter individually and transcribe exactly.\n" +
       "- For the zip code: read each of the 5 digits individually. The zip may not be a real zip code — transcribe the exact digits.\n" +
+      "- NAME ORDER: many state forms (including California) print the LAST NAME box FIRST, then First Name, then Middle Name. Other forms use First / Middle / Last. Read the printed label for each box and map by label only. Never assume the first name box is on the left.\n" +
+      "- lastName must never be empty when a last name is written on the form. If only two name parts are written, they are first and LAST, not first and middle.\n" +
       "- " + dobInstruction + "\n\n" +
       "Field mapping:\n" +
       "- street = house number + street name + street type (e.g. Ave, St, Blvd). No apt.\n" +
@@ -71,6 +74,7 @@ exports.handler = async function (event) {
       mediaType = "image/png";
     }
 
+    const startedAt = Date.now();
     const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -105,6 +109,8 @@ exports.handler = async function (event) {
     });
 
     const apiResult = await apiResponse.json();
+    const elapsedMs = Date.now() - startedAt;
+    console.log("extract: state=" + state + " status=" + apiResponse.status + " claudeMs=" + elapsedMs + (apiResult.error ? " error=" + (apiResult.error.message || apiResult.error.type) : ""));
 
     if (apiResult.error) {
       return {
@@ -143,9 +149,20 @@ exports.handler = async function (event) {
     }
 
     const extracted = JSON.parse(responseText.substring(firstBrace, lastBrace + 1));
+
+    // Safety net: a middle name with no last name almost always means the model
+    // shifted the name fields by one (forms that list Last Name first).
+    if ((!extracted.lastName || !String(extracted.lastName).trim()) && extracted.middleName && String(extracted.middleName).trim()) {
+      extracted.lastName = extracted.middleName;
+      extracted.middleName = "";
+      console.log("extract: swapped middleName into empty lastName");
+    }
+
+    console.log("extract: ok totalMs=" + (Date.now() - startedAt) + " confidence=" + (extracted.confidence || ""));
     return { statusCode: 200, headers, body: JSON.stringify(extracted) };
 
   } catch (err) {
+    console.log("extract: exception " + err.message);
     return {
       statusCode: 500,
       headers,
